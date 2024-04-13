@@ -48,7 +48,9 @@ export default function Index() {
   }
   return (
     <div className="min-h-screen bg-slate-900 p-40">
-      <h1 className="text-3xl text-white">Welcome to Remix</h1>
+      <div className="flex justify-between py-2">
+        <h1 className="text-3xl text-white">Gen 1</h1>
+      </div>
       <ul className="border border-red-400/30 p-20">
         <div className="grid grid-flow-row grid-cols-3 gap-8">
           {pokemons.results.map(
@@ -63,3 +65,4 @@ export default function Index() {
     </div>
   );
 }
+

@@ -5,7 +5,8 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import "./index.css"
+import "./index.css";
+import { Search } from "./routes/search";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,7 +18,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="bg-slate-900">
+        <Search />
         {children}
+        <Outlet />
         <ScrollRestoration />
         <Scripts />
       </body>
