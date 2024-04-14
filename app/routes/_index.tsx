@@ -1,6 +1,7 @@
 import type { MetaFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import localforage from "localforage";
+import { Search } from "./search";
 
 type Pokemon = {
   results: {
@@ -50,6 +51,8 @@ export default function Index() {
     <div className="min-h-screen bg-slate-900 p-40">
       <div className="flex justify-between py-2">
         <h1 className="text-3xl text-white">Gen 1</h1>
+        <p className="text-xl text-slate-500">Press cmd(or ctrl) + K to search</p>
+        <Search />
       </div>
       <ul className="border border-red-400/30 p-20">
         <div className="grid grid-flow-row grid-cols-3 gap-8">
@@ -65,4 +68,3 @@ export default function Index() {
     </div>
   );
 }
-

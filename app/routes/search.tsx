@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { useFetcher, useLocation } from "@remix-run/react";
+import { Link, useFetcher, useLocation } from "@remix-run/react";
 import localforage from "localforage";
 import { ReactNode, useEffect, useRef, useState } from "react";
 
@@ -9,8 +9,10 @@ type Pokemon = {
   }[];
 };
 
-export async function clientLoader() {
-  await getPokemons();
+export async function clientLoader({ request }) {
+  const q = new URL(request.url).searchParams.get("q");
+  if (!q) return [];
+  await getPokemon(q);
   return memory;
 }
 
@@ -18,29 +20,32 @@ export function HydrateFallback() {
   return <p>Loading...</p>;
 }
 
-let memory: Pokemon | null;
-const getPokemons = async () => {
+let memory: string[] | null;
+const getPokemon = async (query: string) => {
   const pokemons: Pokemon | null = await localforage.getItem("pokedex");
+  let matches: string[] = [];
   if (pokemons) {
-    memory = pokemons;
-    return;
+    for (let i = 0; i < pokemons.results.length; i++) {
+      if (
+        pokemons.results[i].name.toLowerCase().includes(query.toLowerCase())
+      ) {
+        matches.push(pokemons.results[i].name);
+      }
+      if (matches.length >= 8) {
+        memory = matches;
+        return;
+      }
+    }
   }
-  const headers = new Headers();
-  headers.append("Cache-Control", "60 * 60 * 24");
-  const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151", {
-    headers: headers,
-  });
-  const pokemon = await response.json();
-  localforage.setItem("pokedex", pokemon);
-  memory = pokemon;
+  memory = matches;
 };
 
 export function Search() {
   const [show, setShow] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
 
-  let location = useLocation();
-  const search = useFetcher();
+  const location = useLocation();
+  const search = useFetcher<string[]>();
 
   useEffect(() => {
     if (show && ref.current) {
@@ -72,7 +77,7 @@ export function Search() {
         <search.Form method="get" action="/search">
           <fieldset className="mb-[15px] flex items-center gap-5">
             <label
-              className="text-black w-[90px] text-right text-[15px]"
+              className="text-white w-[90px] text-right text-lg"
               htmlFor="search"
             >
               Search:
@@ -82,7 +87,7 @@ export function Search() {
               type="search"
               placeholder="search"
               name="q"
-              className="text-black inline-flex h-[35px] w-1/2 flex-1 items-center justify-center rounded-s px-3 text-[15px] leading-none outline-none border"
+              className="text-black inline-flex h-[35px] w-1/2 flex-1 items-center justify-center rounded-s px-3 text-xl leading-none outline-none border"
               id="search"
               onKeyDown={(event) => {
                 if (
@@ -100,29 +105,25 @@ export function Search() {
             />
           </fieldset>
         </search.Form>
+        <ul className="flex flex-col gap-y-4 text-white">
+          {search.data?.map((item, i) => (
+            <li key={i}>
+              <Link
+                to={`/pokemon/${item}`}
+                prefetch="intent"
+                className="text-2xl w-full p-4"
+              >
+                {item}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </MyDialog>
     </div>
   );
 }
 
 function MyDialog(props: { children: ReactNode; open: boolean }) {
-  function queryPokemon(query: string) {
-    const match: string[] = [];
-    if (!memory) {
-      return;
-    }
-    for (let pokemon of memory.results) {
-      if (pokemon.name.toLowerCase().includes(query)) {
-        match.push(pokemon.name);
-      }
-
-      if (match.length >= 20) {
-        break;
-      }
-    }
-    return match;
-  }
-
   return (
     <Dialog.Root open={props.open}>
       <Dialog.Trigger asChild>
@@ -132,21 +133,23 @@ function MyDialog(props: { children: ReactNode; open: boolean }) {
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="bg-black/30 backdrop-blur-sm fixed inset-0" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 max-h-[50vh] h-[80vh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-md bg-white p-6 focus:outline-none">
-          {props.children}
-          <div className="flex justify-end">
+        <Dialog.Content className="fixed top-1/2 left-1/2 max-h-[50vh] h-[80vh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-md bg-slate-500/30 backdrop-blur-sm p-6 focus:outline-none">
+          <div className="relative">
+            {props.children}
+            <div className="absolute top-12 right-0">
+              <Dialog.Close asChild>
+                <button className="bg-slate-900 text-white hover:bg-slate-950 inline-flex h-[35px] items-center justify-center rounded-[4px] px-[15px] font-medium leading-none">
+                  Close
+                </button>
+              </Dialog.Close>
+            </div>
             <Dialog.Close asChild>
-              <button className="bg-slate-900 text-white hover:bg-slate-950 inline-flex h-[35px] items-center justify-center rounded-[4px] px-[15px] font-medium leading-none">
-                Close
-              </button>
+              <button
+                className="text-violet-200 absolute top-[10px] right-[10px] inline-flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-full focus:outline-none"
+                aria-label="Close"
+              ></button>
             </Dialog.Close>
           </div>
-          <Dialog.Close asChild>
-            <button
-              className="text-violet-200 absolute top-[10px] right-[10px] inline-flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-full focus:outline-none"
-              aria-label="Close"
-            ></button>
-          </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

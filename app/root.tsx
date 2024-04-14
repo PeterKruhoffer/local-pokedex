@@ -17,10 +17,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body className="bg-slate-900">
-        <Search />
+      <body className="relative bg-slate-900">
+        {/* <div className="absolute top-[4%] right-[10%]">
+          <Search />
+        </div>
+*/}
         {children}
-        <Outlet />
+        {/*<Outlet />*/}
         <ScrollRestoration />
         <Scripts />
       </body>
