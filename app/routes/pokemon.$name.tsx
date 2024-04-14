@@ -1,4 +1,5 @@
 import { Link, useLoaderData } from "@remix-run/react";
+
 type Pokemon = {
   name: string
   sprites: {
@@ -25,9 +26,6 @@ export async function loader({ params }) {
   return { pokemon: pokemon };
 }
 
-// Cache movies individually in session storage in the browser for super fast
-// back/forward/revisits during the session, but will fetch fresh data
-// from the server if the user closes the tab and comes back later
 export async function clientLoader({ serverLoader, params }) {
   let cacheKey = `pokemon-${params.name}`;
   let cache = sessionStorage.getItem(cacheKey);
