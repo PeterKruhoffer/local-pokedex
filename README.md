@@ -1,5 +1,5 @@
 # Local Pokedex
-## Setup is heavily insperet by https://github.com/remix-run/example-movies
+## Setup is heavily inspired by https://github.com/remix-run/example-movies
 
 # Welcome to Remix + Vite!
 
